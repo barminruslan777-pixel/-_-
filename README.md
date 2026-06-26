@@ -1,3 +1,87 @@
+РЕЗЕРВНОЕ КОПИРОВАНИЕ
+
+# Создать папку /backup/
+sudo mkdir -p /backup
+
+# Проверить, что папка создалась
+ls -la / | grep backup
+
+# Выполнить команду снова
+sudo tar -czvf /backup/system_backup_$(date +%Y%m%d_%H%M%S).tar.gz --exclude=/backup --exclude=/proc --exclude=/sys --exclude=/dev --exclude=/tmp --exclude=/run --exclude=/mnt --exclude=/media --exclude=/lost+found /
+
+
+
+СОЗДАНИЕ ТОЧЕК ВОССТАНОВЛЕНИЯ ---
+
+
+
+создать группы пользователей, настроить права доступа;
+настроить аутентификацию и авторизацию, журналов мониторинга;
+
+
+# 1. Создание групп
+sudo groupadd developers 2>/dev/null
+sudo groupadd admins 2>/dev/null
+sudo groupadd users 2>/dev/null
+
+# 2. Создание пользователей
+sudo useradd -m -G developers -s /bin/bash developer1 2>/dev/null
+echo "developer1:dev123" | sudo chpasswd
+
+sudo useradd -m -G admins,sudo -s /bin/bash admin1 2>/dev/null
+echo "admin1:admin123" | sudo chpasswd
+
+sudo useradd -m -G users -s /bin/bash user1 2>/dev/null
+echo "user1:user123" | sudo chpasswd
+
+# 3. Проверка
+echo "=== ПРОВЕРКА ==="
+groups developer1
+groups admin1
+groups user1
+
+# 4. Создание папок и прав
+echo "=== НАСТРОЙКА ПРАВ ==="
+sudo mkdir -p /srv/projects
+sudo chown root:developers /srv/projects
+sudo chmod 770 /srv/projects
+
+sudo mkdir -p /srv/admin
+sudo chown root:admins /srv/admin
+sudo chmod 750 /srv/admin
+
+sudo mkdir -p /srv/public
+sudo chown root:users /srv/public
+sudo chmod 755 /srv/public
+
+# 5. Показать права
+ls -la /srv/
+
+# 6. Настройка аутентификации
+echo "=== НАСТРОЙКА АУТЕНТИФИКАЦИИ ==="
+echo "auth required pam_tally2.so deny=5 unlock_time=60" | sudo tee -a /etc/pam.d/common-auth > /dev/null
+echo "%admins ALL=(ALL:ALL) ALL" | sudo tee -a /etc/sudoers.d/admins > /dev/null
+
+# 7. Сохранение логов
+echo "=== ЖУРНАЛЫ МОНИТОРИНГА ==="
+sudo journalctl --since "2026-06-26 00:00:00" > ~/logs_26.06.2026.txt
+sudo last | head -20 > ~/last_logins.txt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Краткая инструкция по работе
+
 📌 ЧАСТЬ 1: ВИРТУАЛЬНАЯ МАШИНА
 Создание ВМ:
 VirtualBox → Создать
